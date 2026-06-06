@@ -1,37 +1,34 @@
-// src/theme/ThemeRegistry.tsx
 "use client";
 
-import { CssBaseline, ThemeProvider } from "@mui/material";
-import { useEffect, useState } from "react";
-import theme from "./theme";
+import * as React from "react";
+import { CssBaseline } from "@mui/material";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { useSyncExternalStore } from "react";
+
+const theme = createTheme({
+  palette: {
+    mode: "light",
+  },
+});
 
 export default function ThemeRegistry({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [mode, setMode] = useState<"light" | "dark">("light");
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const prefersLight = window.matchMedia(
-      "(prefers-color-scheme: light)"
-    ).matches;
-    setMode(prefersLight ? "light" : "dark");
-    setMounted(true);
-  }, []);
-
-  // When the component is mounted
-  useEffect(() => {
-    document.body.style.transition =
-      "background-color 0.3s ease, color 0.3s ease";
-  }, [mode]);
+  // ✅ Fix hydration issue (no useEffect, no warning)
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   if (!mounted) return null;
 
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline enableColorScheme>{children}</CssBaseline>
+      <CssBaseline />
+      {children}
     </ThemeProvider>
   );
 }
